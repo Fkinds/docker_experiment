@@ -1,0 +1,83 @@
+services:
+  router:
+    build: .
+    container_name: router
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: sh -c "apt-get update && apt-get install -y iproute2 && sleep infinity"
+    networks:
+      eu_net:
+        ipv4_address: 172.28.0.3
+      na_net:
+        ipv4_address: 172.29.0.3
+      sa_net:
+        ipv4_address: 172.30.0.3
+      us_net:
+        ipv4_address: 172.31.0.3
+
+  eu:
+    build: .
+    container_name: eu_container
+    privileged: true
+    networks:
+      eu_net:
+        ipv4_address: 172.28.0.2
+    volumes:
+      - ./scripts:/scripts
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  na:
+    build: .
+    container_name: na_container
+    privileged: true
+    networks:
+      na_net:
+        ipv4_address: 172.29.0.2
+    volumes:
+      - ./scripts:/scripts
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  sa:
+    build: .
+    container_name: sa_container
+    privileged: true
+    networks:
+      sa_net:
+        ipv4_address: 172.30.0.2
+    volumes:
+      - ./scripts:/scripts
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  us:
+    build: .
+    container_name: us_container
+    privileged: true
+    networks:
+      us_net:
+        ipv4_address: 172.31.0.2
+    volumes:
+      - ./scripts:/scripts
+      - /var/run/docker.sock:/var/run/docker.sock
+
+networks:
+  eu_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+  na_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.29.0.0/16
+  sa_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/16
+  us_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.31.0.0/16
