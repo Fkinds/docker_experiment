@@ -2,7 +2,18 @@
 FROM ubuntu:20.04
 
 # 必要なパッケージをインストール
-RUN apt-get update && apt-get install -y iputils-ping iproute2 curl gnupg lsb-release software-properties-common
+RUN apt-get update && apt-get install -y \
+    quagga \
+    isc-dhcp-server \
+    iproute2 \
+    iputils-ping \
+    isc-dhcp-client \
+    curl \
+    gnupg \
+    lsb-release \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
 
 # Docker CLIをインストール
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
@@ -10,8 +21,21 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
     apt-get update && \
     apt-get install -y docker-ce-cli
 
-# シェルスクリプトをコピー
-COPY scripts /scripts
+# Quagga設定ファイルのコピー
+COPY quagga/router1/zebra.conf /etc/quagga/zebra.conf
+COPY quagga/router1/ospfd.conf /etc/quagga/ospfd.conf
+COPY quagga/router2/zebra.conf /etc/quagga/zebra.conf
+COPY quagga/router2/ospfd.conf /etc/quagga/ospfd.conf
 
-# コンテナが起動したら無限に待機
-CMD ["sh", "-c", "sleep infinity"]
+# DHCPサーバー設定ファイルのコピー
+COPY dhcpd.conf /etc/dhcp/dhcpd.conf
+
+# 起動スクリプトのコピー
+# 起動スクリプトのコピー
+COPY scripts/start.sh /start.sh
+COPY scripts/ping_with_delay.sh /ping_with_delay.sh
+RUN chmod +x /start.sh /ping_with_delay.sh
+
+
+# QuaggaとDHCPサーバーを起動
+CMD ["/start.sh","/ping_with_delay.sh"]

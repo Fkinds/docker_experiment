@@ -1,61 +1,74 @@
+version: '3.8'
+
 services:
-  router:
+  router1:
     build: .
-    container_name: router
+    container_name: router1
     privileged: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    command: sh -c "apt-get update && apt-get install -y iproute2 && sleep infinity"
     networks:
-      eu_net:
-        ipv4_address: 172.28.0.3
+      common_net:
+        ipv4_address: 172.32.0.3
       na_net:
         ipv4_address: 172.29.0.3
-      sa_net:
-        ipv4_address: 172.30.0.3
       us_net:
         ipv4_address: 172.31.0.3
 
-  eu:
+  router2:
     build: .
-    container_name: eu_container
+    container_name: router2
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      common_net:
+        ipv4_address: 172.32.0.4
+      eu_net:
+        ipv4_address: 172.28.0.4
+      sa_net:
+        ipv4_address: 172.30.0.4
+
+  eu_client2:
+    image: ubuntu:20.04
+    container_name: eu_client2
     privileged: true
     networks:
       eu_net:
-        ipv4_address: 172.28.0.2
+    command: ["sh", "-c", "apt-get update && apt-get install -y isc-dhcp-client && dhclient eth0 && tail -f /dev/null"]
     volumes:
       - ./scripts:/scripts
       - /var/run/docker.sock:/var/run/docker.sock
 
-  na:
-    build: .
-    container_name: na_container
+  na_client1:
+    image: ubuntu:20.04
+    container_name: na_client1
     privileged: true
     networks:
       na_net:
-        ipv4_address: 172.29.0.2
+    command: ["sh", "-c", "apt-get update && apt-get install -y isc-dhcp-client && dhclient eth0 && tail -f /dev/null"]
     volumes:
       - ./scripts:/scripts
       - /var/run/docker.sock:/var/run/docker.sock
 
-  sa:
-    build: .
-    container_name: sa_container
+  sa_client2:
+    image: ubuntu:20.04
+    container_name: sa_client2
     privileged: true
     networks:
       sa_net:
-        ipv4_address: 172.30.0.2
+    command: ["sh", "-c", "apt-get update && apt-get install -y isc-dhcp-client && dhclient eth0 && tail -f /dev/null"]
     volumes:
       - ./scripts:/scripts
       - /var/run/docker.sock:/var/run/docker.sock
 
-  us:
-    build: .
-    container_name: us_container
+  us_client1:
+    image: ubuntu:20.04
+    container_name: us_client1
     privileged: true
     networks:
       us_net:
-        ipv4_address: 172.31.0.2
+    command: ["sh", "-c", "apt-get update && apt-get install -y isc-dhcp-client && dhclient eth0 && tail -f /dev/null"]
     volumes:
       - ./scripts:/scripts
       - /var/run/docker.sock:/var/run/docker.sock
@@ -81,3 +94,8 @@ networks:
     ipam:
       config:
         - subnet: 172.31.0.0/16
+  common_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.32.0.0/16
